@@ -25,7 +25,7 @@ object LogProducer extends App {
 
         val fw = new FileWriter(filePath, true)
 
-        val incrementTimeEvery = rnd.nextInt(200 - 1) + 1
+        val incrementTimeEvery = rnd.nextInt(wlc.records - 1) + 1
 
         var timestamp = System.currentTimeMillis()
         var adjustedTimestamp = timestamp
