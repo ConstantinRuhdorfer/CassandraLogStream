@@ -3,7 +3,6 @@ package log
 import java.io.FileWriter
 
 import config.Settings
-import org.apache.arrow.vector.types.pojo.ArrowType.Timestamp
 import org.apache.commons.io.FileUtils
 
 import scala.io.Source.fromInputStream
@@ -18,12 +17,10 @@ object LogProducer extends App {
     val Visitors = (0 to wlc.visitors).map("Visitor-" + _)
 
     val rnd = new Random()
-    val filePath = wlc.filePath
-    val destPath = wlc.destPath
 
-    for (fileCount <- 1 to wlc.numberOfFiles) {
+    for (_ <- 1 to wlc.numberOfFiles) {
 
-        val fw = new FileWriter(filePath, true)
+        val fw = new FileWriter(wlc.filePath, true)
 
         val incrementTimeEvery = rnd.nextInt(wlc.records - 1) + 1
 
@@ -40,23 +37,22 @@ object LogProducer extends App {
 
             if (iteration % incrementTimeEvery == 0) {
                 println(s"Sent $iteration messages!")
-                val sleeping = rnd.nextInt(incrementTimeEvery * 60)
+                val sleeping = rnd.nextInt(incrementTimeEvery * 10)
                 println(s"Sleeping for $sleeping ms")
                 Thread sleep sleeping
             }
-
         }
         fw.close()
 
-        val outputFile = FileUtils.getFile(s"${destPath}data_$timestamp")
+        val outputFile = FileUtils.getFile(s"${wlc.destPath}data_$timestamp")
         println(s"Moving produced data to $outputFile")
-        FileUtils.moveFile(FileUtils.getFile(filePath), outputFile)
+        FileUtils.moveFile(FileUtils.getFile(wlc.filePath), outputFile)
         val sleeping = 5000
         println(s"Sleeping for $sleeping ms")
     }
 
     /**
-     * Generates a new data point for the fake log message.
+     * Generates a new data point for the fake log messages.
      *
      * @param iteration The current iteration for pseudo randomness.
      * @param adjustedTimeStamp The current adjusted timestamp.
