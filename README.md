@@ -3,7 +3,7 @@
 First create the correct keyspace:
 
 ```cql
-create keyspace "LogStreamCassandra" with replication = {'class': 'SimpleStrategy', 'replication_factor' : 3};
+create keyspace "LogStreamCassandra" with replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 ```
 
 Use the keyspace:

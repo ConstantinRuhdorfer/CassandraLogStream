@@ -16,7 +16,7 @@ object SparkUtils {
 
 
         conf.setMaster("local[*]")
-        checkpointDirectory = "/checkpointDir"
+        checkpointDirectory = "src/main/resources/checkpointDir/"
 
         // setup spark context
         val sc = SparkContext.getOrCreate(conf)
