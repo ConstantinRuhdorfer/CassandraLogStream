@@ -6,6 +6,8 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object SparkUtils {
 
+    val isWindows: Boolean = System.getProperty("os.name").toLowerCase().contains("win");
+
     def getSparkContext(appName: String): SparkContext = {
         var checkpointDirectory = ""
 
@@ -14,6 +16,9 @@ object SparkUtils {
             .setAppName(appName)
             .set("spark.casandra.connection.host", "localhost")
 
+
+        if (isWindows)
+            System.setProperty("hadoop.home.dir", "C:\\libraries\\WinUtils")
 
         conf.setMaster("local[*]")
         checkpointDirectory = "src/main/resources/checkpointDir/"
