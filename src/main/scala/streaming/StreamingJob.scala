@@ -9,10 +9,10 @@ import com.datastax.spark.connector.writer.WriteConf
 
 import scala.language.postfixOps
 
-object SteamingJob extends App {
+object StreamingJob extends App {
 
     // setup spark context
-    val sc = getSparkContext("Lambda with Spark")
+    val sc = getSparkContext("LogStreamCassandra")
     val sqlContext = getSQLContext(sc)
 
 
@@ -36,7 +36,6 @@ object SteamingJob extends App {
 
         val inputPath = "src/main/resources/input/"
 
-        import sqlContext.implicits._
         val writeConf = WriteConf(ifNotExists = true)
 
         val textDStream = ssc.textFileStream(inputPath)
@@ -59,7 +58,6 @@ object SteamingJob extends App {
            rdd.saveToCassandra("logstreamcassandra", "masterlogdata",
                AllColumns, writeConf = writeConf)
         })
-
 
         ssc
     }
