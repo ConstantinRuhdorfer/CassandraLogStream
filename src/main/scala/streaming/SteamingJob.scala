@@ -4,7 +4,10 @@ import domain.LogDataPoint
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 import utils.SparkUtils._
-import com.datastax.spark.connector.streaming._
+import com.datastax.spark.connector._
+import com.datastax.spark.connector.writer.WriteConf
+
+import scala.language.postfixOps
 
 object SteamingJob extends App {
 
@@ -33,14 +36,17 @@ object SteamingJob extends App {
 
         val inputPath = "src/main/resources/input/"
 
+        import sqlContext.implicits._
+        val writeConf = WriteConf(ifNotExists = true)
+
         val textDStream = ssc.textFileStream(inputPath)
-        val logStream = textDStream.transform(input => {
+        textDStream.transform(input => {
             input.flatMap { line =>
+
                 val record = line.split(";")
-                val MS_IN_HOUR = 1000 * 60 * 60
 
                 if (record.length == 6)
-                    Some(LogDataPoint(record(0).toLong / MS_IN_HOUR * MS_IN_HOUR,
+                    Some(LogDataPoint(record(0).toLong,
                         record(1),
                         record(2),
                         record(3),
@@ -49,9 +55,11 @@ object SteamingJob extends App {
                 else
                     None
             }
-        }).cache()
+        }).foreachRDD(rdd => {
+           rdd.saveToCassandra("logstreamcassandra", "masterlogdata",
+               AllColumns, writeConf = writeConf)
+        })
 
-        logStream.saveToCassandra("LogStreamCassandra", "masterlogdata")
 
         ssc
     }

@@ -25,14 +25,12 @@ object LogProducer extends App {
         val incrementTimeEvery = rnd.nextInt(wlc.records - 1) + 1
 
         var timestamp = System.currentTimeMillis()
-        var adjustedTimestamp = timestamp
 
         for (iteration <- 1 to wlc.records) {
 
-            adjustedTimestamp = adjustedTimestamp + ((System.currentTimeMillis() - timestamp) * wlc.timeMultiplier)
-            timestamp = System.currentTimeMillis()
+            var timestamp = System.currentTimeMillis()
 
-            val line = generateNewDataPoint(iteration, adjustedTimestamp, timestamp)
+            val line = generateNewDataPoint(iteration, timestamp)
             fw.write(line)
 
             if (iteration % incrementTimeEvery == 0) {
@@ -55,11 +53,10 @@ object LogProducer extends App {
      * Generates a new data point for the fake log messages.
      *
      * @param iteration The current iteration for pseudo randomness.
-     * @param adjustedTimeStamp The current adjusted timestamp.
      * @param timestamp The current timestamp.
      * @return
      */
-    def generateNewDataPoint(iteration: Int, adjustedTimeStamp: Long, timestamp: Long): String = {
+    def generateNewDataPoint(iteration: Int, timestamp: Long): String = {
 
         val statusCode = iteration % (rnd.nextInt(200) + 1) match {
             case 0 => "500"
@@ -84,7 +81,7 @@ object LogProducer extends App {
         val message = LogMessages(rnd.nextInt(2000 - 1))
         val ip = LogIPAddresses(rnd.nextInt(500 - 1))
 
-        s"$adjustedTimeStamp;$visitor;$ip;$message;$statusCode;$logLevel\n"
+        s"$timestamp;$visitor;$ip;$message;$statusCode;$logLevel\n"
     }
 
     /**
