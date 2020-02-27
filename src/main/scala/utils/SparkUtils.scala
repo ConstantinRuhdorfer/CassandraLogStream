@@ -6,8 +6,14 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object SparkUtils {
 
-    val isWindows: Boolean = System.getProperty("os.name").toLowerCase().contains("win");
+    val isWindows: Boolean = System.getProperty("os.name").toLowerCase().contains("win")
 
+    /**
+     * Creates or a spark context that is OS agnostic.
+     *
+     * @param appName Name of the app.
+     * @return
+     */
     def getSparkContext(appName: String): SparkContext = {
         var checkpointDirectory = ""
 
@@ -29,13 +35,28 @@ object SparkUtils {
         sc
     }
 
+    /**
+     * Returns the sql context.
+     *
+     * @param sc The spark context.
+     * @return
+     */
     def getSQLContext(sc: SparkContext): SQLContext = {
         val sqlContext = SQLContext.getOrCreate(sc)
         sqlContext
     }
 
-    def getStreamingContext(streamingApp : (SparkContext, Duration)
-            => StreamingContext, sc : SparkContext, batchDuration: Duration): StreamingContext = {
+    /**
+     * Given a streaming app function executes that,
+     * sets checkpoints and returns the streaming context.
+     *
+     * @param streamingApp  The function to execute.
+     * @param sc            The spark context.
+     * @param batchDuration The batch duration for the straming app.
+     * @return The Streaming context.
+     */
+    def getStreamingContext(streamingApp: (SparkContext, Duration)
+        => StreamingContext, sc: SparkContext, batchDuration: Duration): StreamingContext = {
 
         val creatingFunc = () => streamingApp(sc, batchDuration)
         val ssc = sc.getCheckpointDir match {

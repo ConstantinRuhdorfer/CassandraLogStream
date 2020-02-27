@@ -1,11 +1,13 @@
 package streaming
 
+import com.datastax.spark.connector._
+import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.spark.connector.writer.WriteConf
 import domain.LogDataPoint
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
+import utils.CassandraUtils._
 import utils.SparkUtils._
-import com.datastax.spark.connector._
-import com.datastax.spark.connector.writer.WriteConf
 
 import scala.language.postfixOps
 
@@ -15,9 +17,9 @@ object StreamingJob extends App {
     val sc = getSparkContext("LogStreamCassandra")
     val sqlContext = getSQLContext(sc)
 
+    createCassandraSetupIfNotExists(sc)
 
     val batchDuration = Seconds(4)
-
     val ssc = getStreamingContext(streamingApp, sc, batchDuration)
 
     ssc.start()
@@ -33,10 +35,10 @@ object StreamingJob extends App {
     def streamingApp(sc: SparkContext, batchDuration: Duration): StreamingContext = {
 
         val ssc = new StreamingContext(sc, batchDuration)
-
         val inputPath = "src/main/resources/input/"
-
         val writeConf = WriteConf(ifNotExists = true)
+
+        implicit val c: CassandraConnector = getOrCreateCassandraConnector(sc)
 
         val textDStream = ssc.textFileStream(inputPath)
         textDStream.transform(input => {
@@ -55,8 +57,8 @@ object StreamingJob extends App {
                     None
             }
         }).foreachRDD(rdd => {
-           rdd.saveToCassandra("logstreamcassandra", "masterlogdata",
-               AllColumns, writeConf = writeConf)
+            rdd.saveToCassandra("logstreamcassandra", "masterlogdata",
+                AllColumns, writeConf = writeConf)
         })
 
         ssc
