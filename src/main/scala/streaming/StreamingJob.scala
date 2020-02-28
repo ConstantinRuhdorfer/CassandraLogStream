@@ -22,6 +22,7 @@ object StreamingJob extends App {
     val batchDuration = Seconds(4)
     val ssc = getStreamingContext(streamingApp, sc, batchDuration)
 
+    println("Streaming data ...")
     ssc.start()
     ssc.awaitTermination()
 

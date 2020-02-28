@@ -1,5 +1,6 @@
 package utils
 
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.streaming.{Duration, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -15,6 +16,7 @@ object SparkUtils {
      * @return
      */
     def getSparkContext(appName: String): SparkContext = {
+
         var checkpointDirectory = ""
 
         // get spark configuration
@@ -31,6 +33,11 @@ object SparkUtils {
 
         // setup spark context
         val sc = SparkContext.getOrCreate(conf)
+
+        Logger.getLogger("org").setLevel(Level.WARN)
+        Logger.getLogger("akka").setLevel(Level.WARN)
+
+        sc.setLogLevel("WARN")
         sc.setCheckpointDir(checkpointDirectory)
         sc
     }
