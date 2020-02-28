@@ -46,13 +46,15 @@ object StreamingJob extends App {
 
                 val record = line.split(";")
 
-                if (record.length == 6)
-                    Some(LogDataPoint(record(0).toLong,
-                        record(1),
+                if (record.length == 7)
+                    Some(LogDataPoint(
+                        record(0),
+                        record(1).toLong,
                         record(2),
                         record(3),
-                        record(4).toInt,
-                        record(5)))
+                        record(4),
+                        record(5).toInt,
+                        record(6)))
                 else
                     None
             }

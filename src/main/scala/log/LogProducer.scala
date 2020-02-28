@@ -28,8 +28,7 @@ object LogProducer extends App {
 
         for (iteration <- 1 to wlc.records) {
 
-            var timestamp = System.currentTimeMillis()
-
+            timestamp = System.currentTimeMillis()
             val line = generateNewDataPoint(iteration, timestamp)
             fw.write(line)
 
@@ -77,11 +76,12 @@ object LogProducer extends App {
             }
         }
 
+        val id = java.util.UUID.randomUUID().toString
         val visitor = Visitors(rnd.nextInt(Visitors.length - 1))
         val message = LogMessages(rnd.nextInt(2000 - 1))
         val ip = LogIPAddresses(rnd.nextInt(500 - 1))
 
-        s"$timestamp;$visitor;$ip;$message;$statusCode;$logLevel\n"
+        s"$id;$timestamp;$visitor;$ip;$message;$statusCode;$logLevel\n"
     }
 
     /**

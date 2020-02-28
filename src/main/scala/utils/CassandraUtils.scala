@@ -32,16 +32,16 @@ object CassandraUtils {
         val session = getOrCreateCassandraConnector(sc).openSession()
 
         val result: ResultSet = session.execute(
-            s"""SELECT * FROM system_schema.keyspaces WHERE keyspace_name='${keySpace}';""".stripMargin)
+            s"""SELECT * FROM system_schema.keyspaces WHERE keyspace_name='$keySpace';""".stripMargin)
 
         if (!result.iterator().hasNext) {
             session.execute(
-                s"""CREATE KEYSPACE ${keySpace}
+                s"""CREATE KEYSPACE $keySpace
                    |WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
                 """.stripMargin)
         }
 
-        session.execute(s"""use ${keySpace};""")
+        session.execute(s"""use $keySpace;""")
 
         try {
             session.execute(s"""SELECT * FROM masterlogdata;""")
@@ -51,13 +51,14 @@ object CassandraUtils {
                 session.execute(
                     s"""
                        |create table masterlogdata(
+                       |id text,
                        |timestamp bigint,
                        |visitor text,
                        |ip text,
                        |message text,
                        |statusCode int,
                        |loglevel text,
-                       |PRIMARY KEY(statusCode, loglevel, timestamp));
+                       |PRIMARY KEY(id, timestamp, statusCode, loglevel));
                        |""".stripMargin)
         }
 
