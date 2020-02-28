@@ -19,6 +19,11 @@ package object domain {
                         visitorid: String,
                         visitorip: String)
 
+    case class Visitor(visitorid: String,
+                       visitorip: String,
+                       timestamp: Long,
+                       pagepath: String)
+
     object HTTPVersion extends Enumeration {
         type HTTPVersion = Value
         val HTTP1: domain.HTTPVersion.Value = Value("HTTP/1.0")

@@ -15,10 +15,10 @@ object Settings {
         lazy val destPath: String = weblogGen.getString("dest_path")
         lazy val numberOfFiles: Int = weblogGen.getInt("number_of_files")
         lazy val defaultKeySpace: String = weblogGen.getString("default_key_space")
-        lazy val defaultMasterLogDataTableName: String
-        = weblogGen.getString("default_master_log_data_table_name")
-        lazy val defaultPageViewTableName: String
-        = weblogGen.getString("default_page_view_table_name")
+        lazy val defaultMasterLogDataTableName: String = weblogGen.getString("default_master_log_data_table_name")
+        lazy val defaultPageViewTableName: String = weblogGen.getString("default_page_view_table_name")
+        lazy val defaultVisitorTableName: String = weblogGen.getString("default_visitor_table_name")
+
     }
 
 }

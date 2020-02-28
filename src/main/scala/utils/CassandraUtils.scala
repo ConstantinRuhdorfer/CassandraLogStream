@@ -20,7 +20,8 @@ object CassandraUtils {
         createCassandraSetupIfNotExists(sc,
             wlc.defaultKeySpace,
             wlc.defaultMasterLogDataTableName,
-            wlc.defaultPageViewTableName)
+            wlc.defaultPageViewTableName,
+            wlc.defaultVisitorTableName)
     }
 
     /**
@@ -30,7 +31,8 @@ object CassandraUtils {
      * @param keySpace A keyspace name. Should default to defaultKeySpace.
      */
     def createCassandraSetupIfNotExists(sc: SparkContext, keySpace: String,
-                                        masterLogDataTableName: String, pageViewTableName: String): Unit = {
+                                        masterLogDataTableName: String, pageViewTableName: String,
+                                        visitorTableName: String): Unit = {
 
         val session = getOrCreateCassandraConnector(sc).openSession()
 
@@ -86,6 +88,21 @@ object CassandraUtils {
                        |visitorid text,
                        |visitorip text,
                        |PRIMARY KEY(pagepath, timestamp, visitorid));
+                       |""".stripMargin)
+        }
+        try {
+            session.execute(s"""SELECT * FROM $visitorTableName;""")
+        }
+        catch {
+            case _: InvalidQueryException =>
+                session.execute(
+                    s"""
+                       |CREATE TABLE $visitorTableName(
+                       |visitorid text,
+                       |visitorip text,
+                       |timestamp bigint,
+                       |pagepath text,
+                       |PRIMARY KEY(visitorid, timestamp, pagepath));
                        |""".stripMargin)
         }
 
