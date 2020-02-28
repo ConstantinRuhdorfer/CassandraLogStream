@@ -3,7 +3,7 @@ package streaming
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
-import domain.LogDataPoint
+import domain.{HTTPMethod, HTTPVersion, LogDataPoint}
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 import utils.CassandraUtils._
@@ -45,16 +45,17 @@ object StreamingJob extends App {
             input.flatMap { line =>
 
                 val record = line.split(";")
-
-                if (record.length == 7)
+                if (record.length == 9)
                     Some(LogDataPoint(
                         record(0),
                         record(1).toLong,
                         record(2),
                         record(3),
-                        record(4),
-                        record(5).toInt,
-                        record(6)))
+                        HTTPMethod.customWithName(record(4)),
+                        record(5),
+                        HTTPVersion.customWithName(record(6)),
+                        record(7).toInt,
+                        record(8)))
                 else
                     None
             }

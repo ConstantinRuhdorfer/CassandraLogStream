@@ -55,7 +55,9 @@ object CassandraUtils {
                        |timestamp bigint,
                        |visitor text,
                        |ip text,
-                       |message text,
+                       |httpmethod text,
+                       |page text,
+                       |httpversion text,
                        |statusCode int,
                        |loglevel text,
                        |PRIMARY KEY(id, timestamp, statusCode, loglevel));

@@ -3,6 +3,8 @@ package log
 import java.io.FileWriter
 
 import config.Settings
+import domain.HTTPMethod.HTTPMethod
+import domain.{HTTPMethod, HTTPVersion}
 import org.apache.commons.io.FileUtils
 
 import scala.io.Source.fromInputStream
@@ -13,7 +15,7 @@ object LogProducer extends App {
     val wlc = Settings.WebLogGen
 
     val LogIPAddresses = getLinesInFile("/LogIPAddresses.csv")
-    val LogMessages = getLinesInFile("/LogMessages.csv")
+    val LogPages = getLinesInFile("/LogPages.csv")
     val Visitors = (0 to wlc.visitors).map("Visitor-" + _)
 
     val rnd = new Random()
@@ -21,9 +23,7 @@ object LogProducer extends App {
     for (_ <- 1 to wlc.numberOfFiles) {
 
         val fw = new FileWriter(wlc.filePath, true)
-
         val incrementTimeEvery = rnd.nextInt(wlc.records - 1) + 1
-
         var timestamp = System.currentTimeMillis()
 
         for (iteration <- 1 to wlc.records) {
@@ -57,7 +57,7 @@ object LogProducer extends App {
      */
     def generateNewDataPoint(iteration: Int, timestamp: Long): String = {
 
-        val statusCode = iteration % (rnd.nextInt(200) + 1) match {
+        val statusCode = iteration % (rnd.nextInt(100) + 1) match {
             case 0 => "500"
             case 1 => "404"
             case 2 => "403"
@@ -76,12 +76,27 @@ object LogProducer extends App {
             }
         }
 
+        val httpVersion = iteration % (rnd.nextInt(3) + 1) match {
+            case 0 => HTTPVersion.HTTP1
+            case 1 => HTTPVersion.HTTP1_1
+            case _ => HTTPVersion.HTTP2
+        }
+
+        implicit val iter: Int = iteration
+        val httpMethod = statusCode match {
+            case "500" => getRandomHTTPMethod
+            case "404" => getRandomHTTPMethod
+            case "403" => getRandomHTTPMethod
+            case "201" => HTTPMethod.PUT
+            case _ => get200CompatibleHTTPMethod
+        }
+
         val id = java.util.UUID.randomUUID().toString
         val visitor = Visitors(rnd.nextInt(Visitors.length - 1))
-        val message = LogMessages(rnd.nextInt(2000 - 1))
+        val page = LogPages(rnd.nextInt(1000 - 1))
         val ip = LogIPAddresses(rnd.nextInt(500 - 1))
 
-        s"$id;$timestamp;$visitor;$ip;$message;$statusCode;$logLevel\n"
+        s"$id;$timestamp;$visitor;$ip;$httpMethod;$page;$httpVersion;$statusCode;$logLevel\n"
     }
 
     /**
@@ -94,5 +109,36 @@ object LogProducer extends App {
         fromInputStream(getClass.getResourceAsStream(filePath))
             .getLines()
             .toArray
+    }
+
+    /**
+     * Get a random HTTP Method that is compatible with a code 200.
+     *
+     * @param iteration The current iteration for pseudo randomness.
+     * @return The HTTPMethod
+     */
+    private def get200CompatibleHTTPMethod(implicit iteration: Int): HTTPMethod = {
+        iteration % (rnd.nextInt(6) + 1) match {
+            case 1 => HTTPMethod.HEAD
+            case 2 => HTTPMethod.DELETE
+            case _ => HTTPMethod.GET
+        }
+    }
+
+    /**
+     * Get some HTTP Method were GET is 5 more likely than any other
+     *
+     * @param iteration The current iteration for pseudo randomness.
+     * @return The HTTPMethod
+     */
+    private def getRandomHTTPMethod(implicit iteration: Int): HTTPMethod = {
+        iteration % (rnd.nextInt(10) + 1) match {
+            case 1 => HTTPMethod.HEAD
+            case 2 => HTTPMethod.DELETE
+            case 3 => HTTPMethod.PATCH
+            case 4 => HTTPMethod.POST
+            case 5 => HTTPMethod.PUT
+            case _ => HTTPMethod.GET
+        }
     }
 }
