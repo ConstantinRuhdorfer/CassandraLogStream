@@ -13,6 +13,12 @@ package object domain {
                             statuscode: Int,
                             loglevel: String)
 
+    case class PageView(pagename: String,
+                        pagepath: String,
+                        timestamp: Long,
+                        visitorid: String,
+                        visitorip: String)
+
     object HTTPVersion extends Enumeration {
         type HTTPVersion = Value
         val HTTP1: domain.HTTPVersion.Value = Value("HTTP/1.0")

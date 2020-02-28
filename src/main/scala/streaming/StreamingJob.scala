@@ -3,7 +3,7 @@ package streaming
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
-import domain.{HTTPMethod, HTTPVersion, LogDataPoint}
+import domain.{HTTPMethod, HTTPVersion, LogDataPoint, PageView}
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 import utils.CassandraUtils._
@@ -40,10 +40,10 @@ object StreamingJob extends App {
 
         implicit val c: CassandraConnector = getOrCreateCassandraConnector(sc)
 
+        // Writes the logs.
         val textDStream = ssc.textFileStream(inputPath)
         textDStream.transform(input => {
             input.flatMap { line =>
-
                 val record = line.split(";")
                 if (record.length == 9)
                     Some(LogDataPoint(
@@ -60,7 +60,28 @@ object StreamingJob extends App {
                     None
             }
         }).foreachRDD(rdd => {
-            rdd.saveToCassandra("logstreamcassandra", "masterlogdata",
+            rdd.saveToCassandra(s"""${wlc.defaultKeySpace}""",
+                s"""${wlc.defaultMasterLogDataTableName}""",
+                AllColumns, writeConf = writeConf)
+        })
+
+        // Writes the page infos with view.
+        textDStream.transform(input => {
+            input.flatMap { line =>
+                val record = line.split(";")
+                if (record.length == 9)
+                    Some(PageView(
+                        record(5).split("/").last,
+                        record(5),
+                        record(1).toLong,
+                        record(2),
+                        record(3)))
+                else
+                    None
+            }
+        }).foreachRDD(rdd => {
+            rdd.saveToCassandra(s"""${wlc.defaultKeySpace}""",
+                s"""${wlc.defaultPageViewTableName}""",
                 AllColumns, writeConf = writeConf)
         })
 

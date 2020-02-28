@@ -18,7 +18,9 @@ object CassandraUtils {
      */
     def createCassandraSetupIfNotExists(sc: SparkContext): Unit = {
         createCassandraSetupIfNotExists(sc,
-            wlc.defaultKeySpace)
+            wlc.defaultKeySpace,
+            wlc.defaultMasterLogDataTableName,
+            wlc.defaultPageViewTableName)
     }
 
     /**
@@ -27,30 +29,37 @@ object CassandraUtils {
      * @param sc       The spark context.
      * @param keySpace A keyspace name. Should default to defaultKeySpace.
      */
-    def createCassandraSetupIfNotExists(sc: SparkContext, keySpace: String): Unit = {
+    def createCassandraSetupIfNotExists(sc: SparkContext, keySpace: String,
+                                        masterLogDataTableName: String, pageViewTableName: String): Unit = {
 
         val session = getOrCreateCassandraConnector(sc).openSession()
 
         val result: ResultSet = session.execute(
-            s"""SELECT * FROM system_schema.keyspaces WHERE keyspace_name='$keySpace';""".stripMargin)
+            s"""SELECT * FROM system_schema.keyspaces WHERE keyspace_name='$keySpace';
+            """.stripMargin)
 
-        if (!result.iterator().hasNext) {
-            session.execute(
-                s"""CREATE KEYSPACE $keySpace
-                   |WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
-                """.stripMargin)
+
+        if (result.iterator().hasNext) {
+            // NOTE: For development only
+            session.execute(s"""DROP KEYSPACE $keySpace;""")
+
         }
+
+        session.execute(
+            s"""CREATE KEYSPACE $keySpace
+               |WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+                """.stripMargin)
 
         session.execute(s"""use $keySpace;""")
 
         try {
-            session.execute(s"""SELECT * FROM masterlogdata;""")
+            session.execute(s"""SELECT * FROM $masterLogDataTableName;""")
         }
         catch {
             case _: InvalidQueryException =>
                 session.execute(
                     s"""
-                       |create table masterlogdata(
+                       |CREATE TABLE $masterLogDataTableName(
                        |id text,
                        |timestamp bigint,
                        |visitor text,
@@ -60,7 +69,23 @@ object CassandraUtils {
                        |httpversion text,
                        |statusCode int,
                        |loglevel text,
-                       |PRIMARY KEY(id, timestamp, statusCode, loglevel));
+                       |PRIMARY KEY(id, timestamp));
+                       |""".stripMargin)
+        }
+        try {
+            session.execute(s"""SELECT * FROM $pageViewTableName;""")
+        }
+        catch {
+            case _: InvalidQueryException =>
+                session.execute(
+                    s"""
+                       |CREATE TABLE $pageViewTableName(
+                       |pagename text,
+                       |pagepath text,
+                       |timestamp bigint,
+                       |visitorid text,
+                       |visitorip text,
+                       |PRIMARY KEY(pagepath, timestamp, visitorid));
                        |""".stripMargin)
         }
 
