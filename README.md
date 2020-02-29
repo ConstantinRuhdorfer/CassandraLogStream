@@ -1,20 +1,13 @@
-# Cassandra set up
+# Welcome
 
-First create the correct keyspace:
+This project aims to introduce the use of cassandra an display a cassandra use case.
 
-```cql
-create keyspace logstreamcassandra with replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
-```
+## Cassandra
 
-Use the keyspace:
+This project assumes a running cassandra instance under localhost and available under the port 9042.
+If this is not the case please update the projects settings.
+This project is going to setup all necessary tables itself.
 
-```cql
-use logstreamcassandra;
-```
+## Spark
 
-
-Then create the first master table:
-
-```cql
-create table masterlogdata(timestamp bigint, visitor text, ip text, message text, statusCode int, loglevel text, PRIMARY KEY(statusCode, loglevel, timestamp));
-```
+Spark is run by this program per default on all available threads.
