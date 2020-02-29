@@ -3,7 +3,8 @@ package streaming
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
-import domain.{HTTPMethod, HTTPVersion, LogDataPoint, PageView}
+import domain.{LogDataPoint, PageView}
+import domainTypes.{HTTPMethod, HTTPVersion}
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 import utils.CassandraUtils._

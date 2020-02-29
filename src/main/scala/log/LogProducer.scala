@@ -3,8 +3,8 @@ package log
 import java.io.FileWriter
 
 import config.Settings
-import domain.HTTPMethod.HTTPMethod
-import domain.{HTTPMethod, HTTPVersion}
+import domainTypes.HTTPMethod.HTTPMethod
+import domainTypes.{HTTPMethod, HTTPVersion}
 import org.apache.commons.io.FileUtils
 
 import scala.io.Source.fromInputStream
