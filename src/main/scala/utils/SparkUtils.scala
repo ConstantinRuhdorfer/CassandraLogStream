@@ -1,5 +1,6 @@
 package utils
 
+import config.Settings
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.streaming.{Duration, StreamingContext}
@@ -7,13 +8,24 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object SparkUtils {
 
+    val wlc: Settings.WebLogGen.type = Settings.WebLogGen
     val isWindows: Boolean = System.getProperty("os.name").toLowerCase().contains("win")
 
+
     /**
-     * Creates or a spark context that is OS agnostic.
+     * Gets or creates a spark context that is OS agnostic with default app name.
+     *
+     * @return The Spark context.
+     */
+    def getSparkContext: SparkContext = {
+        getSparkContext(wlc.sparkAppName)
+    }
+
+    /**
+     * Gets or creates a spark context that is OS agnostic.
      *
      * @param appName Name of the app.
-     * @return
+     * @return The Spark context.
      */
     def getSparkContext(appName: String): SparkContext = {
 
@@ -46,7 +58,7 @@ object SparkUtils {
      * Returns the sql context.
      *
      * @param sc The spark context.
-     * @return
+     * @return The SQL context.
      */
     def getSQLContext(sc: SparkContext): SQLContext = {
         val sqlContext = SQLContext.getOrCreate(sc)
@@ -59,7 +71,7 @@ object SparkUtils {
      *
      * @param streamingApp  The function to execute.
      * @param sc            The spark context.
-     * @param batchDuration The batch duration for the straming app.
+     * @param batchDuration The batch duration for the streaming app.
      * @return The Streaming context.
      */
     def getStreamingContext(streamingApp: (SparkContext, Duration)

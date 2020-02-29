@@ -3,6 +3,7 @@ package streaming
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
+import config.Settings
 import domain.{LogDataPoint, PageView}
 import domainTypes.{HTTPMethod, HTTPVersion}
 import org.apache.spark.SparkContext
@@ -14,8 +15,10 @@ import scala.language.postfixOps
 
 object StreamingJob extends App {
 
+    val wlc: Settings.WebLogGen.type = Settings.WebLogGen
+
     // setup spark context
-    val sc = getSparkContext("LogStreamCassandra")
+    val sc = getSparkContext
     val sqlContext = getSQLContext(sc)
 
     createCassandraSetupIfNotExists(sc)
@@ -62,8 +65,7 @@ object StreamingJob extends App {
                     None
             }
         }).foreachRDD(rdd => {
-            rdd.saveToCassandra(s"""${wlc.defaultKeySpace}""",
-                s"""${wlc.defaultMasterLogDataTableName}""",
+            rdd.saveToCassandra(wlc.defaultKeySpace, wlc.defaultMasterLogDataTableName,
                 AllColumns, writeConf = writeConf)
         })
 
@@ -82,8 +84,7 @@ object StreamingJob extends App {
                     None
             }
         }).foreachRDD(rdd => {
-            rdd.saveToCassandra(s"""${wlc.defaultKeySpace}""",
-                s"""${wlc.defaultPageViewTableName}""",
+            rdd.saveToCassandra(wlc.defaultKeySpace, wlc.defaultPageViewTableName,
                 AllColumns, writeConf = writeConf)
         })
 
