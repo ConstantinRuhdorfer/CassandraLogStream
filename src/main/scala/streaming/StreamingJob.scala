@@ -35,11 +35,11 @@ object StreamingJob extends App {
     /**
      * The actual streaming application.
      *
-     * @param sc The current spark context.
+     * @param sc            The current spark context.
      * @param batchDuration The batch duration for the streaming context.
      * @return
      */
-    def streamingApp(sc: SparkContext, batchDuration: Duration): StreamingContext = {
+    private def streamingApp(sc: SparkContext, batchDuration: Duration): StreamingContext = {
 
         val ssc = new StreamingContext(sc, batchDuration)
         val inputPath = "src/main/resources/input/"

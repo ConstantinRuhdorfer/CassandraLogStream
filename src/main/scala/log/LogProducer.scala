@@ -53,9 +53,9 @@ object LogProducer extends App {
      *
      * @param iteration The current iteration for pseudo randomness.
      * @param timestamp The current timestamp.
-     * @return
+     * @return The new data point.
      */
-    def generateNewDataPoint(iteration: Int, timestamp: Long): String = {
+    private def generateNewDataPoint(iteration: Int, timestamp: Long): String = {
 
         val statusCode = iteration % (rnd.nextInt(100) + 1) match {
             case 0 => "500"
@@ -105,7 +105,7 @@ object LogProducer extends App {
      * @param filePath The path.
      * @return The array.
      */
-    def getLinesInFile(filePath: String): Array[String] = {
+    private def getLinesInFile(filePath: String): Array[String] = {
         fromInputStream(getClass.getResourceAsStream(filePath))
             .getLines()
             .toArray
