@@ -4,7 +4,7 @@ import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
 import config.Settings
-import domain.{LogDataPoint, PageView}
+import domain.{LogDataPoint, PageView, Visitor}
 import domainTypes.{HTTPMethod, HTTPVersion}
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
@@ -69,7 +69,7 @@ object StreamingJob extends App {
                 AllColumns, writeConf = writeConf)
         })
 
-        // Writes the page infos with view.
+        // Writes the page views table.
         textDStream.transform(input => {
             input.flatMap { line =>
                 val record = line.split(";")
@@ -85,6 +85,24 @@ object StreamingJob extends App {
             }
         }).foreachRDD(rdd => {
             rdd.saveToCassandra(wlc.defaultKeySpace, wlc.defaultPageViewTableName,
+                AllColumns, writeConf = writeConf)
+        })
+
+        // Writes the visitors table.
+        textDStream.transform(input => {
+            input.flatMap { line =>
+                val record = line.split(";")
+                if (record.length == 9)
+                    Some(Visitor(
+                        record(2),
+                        record(3),
+                        record(1).toLong,
+                        record(5)))
+                else
+                    None
+            }
+        }).foreachRDD(rdd => {
+            rdd.saveToCassandra(wlc.defaultKeySpace, wlc.defaultVisitorTableName,
                 AllColumns, writeConf = writeConf)
         })
 
