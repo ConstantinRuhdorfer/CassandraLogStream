@@ -12,6 +12,14 @@ object QueryJob {
         val sc = getSparkContext
         val sqlContext = getSQLContext(sc)
 
+        /**
+         * Equivalent to:
+         *
+         * use logstreamcassandra;
+         * SELECT * FROM masterlogdata
+         * WHERE loglevel == 'error' LIMIT 10;
+         *
+         */
         sqlContext
             .read
             .format("org.apache.spark.sql.cassandra")
@@ -21,6 +29,13 @@ object QueryJob {
             .filter("loglevel == 'error'")
             .show(10)
 
+        /**
+         * Equivalent to:
+         *
+         * use logstreamcassandra;
+         * SELECT count(*) FROM masterlogdata;
+         *
+         */
         print("Number of entries in master database: ")
         println(sqlContext
             .read
@@ -30,6 +45,14 @@ object QueryJob {
             .load
             .count)
 
+        /**
+         * Equivalent to:
+         *
+         * use logstreamcassandra;
+         * SELECT count(*) FROM masterlogdata
+         * WHERE httpversion == 'HTTP/1.0';
+         *
+         */
         print("Number of visitors with an old HTTP version: ")
         println(sqlContext
             .read
