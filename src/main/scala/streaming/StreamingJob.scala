@@ -51,26 +51,26 @@ object StreamingJob extends App {
         val textDStream = ssc.textFileStream(inputPath)
         textDStream
             .transform(transformStream(_, mapToLogData))
-            .foreachRDD(rdd => {
-                rdd.saveToCassandra(wlc.defaultKeySpace, wlc.defaultMasterLogDataTableName,
+            .foreachRDD(
+                _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultMasterLogDataTableName,
                     AllColumns, writeConf = writeConf)
-            })
+            )
 
         // Writes the page views table.
         textDStream
             .transform(transformStream(_, mapToPageView))
-            .foreachRDD(rdd => {
-                rdd.saveToCassandra(wlc.defaultKeySpace, wlc.defaultPageViewTableName,
+            .foreachRDD(
+                _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultPageViewTableName,
                     AllColumns, writeConf = writeConf)
-            })
+            )
 
         // Writes the visitors table.
         textDStream
             .transform(transformStream(_, mapToVisitor))
-            .foreachRDD(rdd => {
-                rdd.saveToCassandra(wlc.defaultKeySpace, wlc.defaultVisitorTableName,
+            .foreachRDD(
+                _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultVisitorTableName,
                     AllColumns, writeConf = writeConf)
-            })
+            )
 
         ssc
     }
