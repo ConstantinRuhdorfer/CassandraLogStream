@@ -27,7 +27,7 @@ object QueryJob {
             .asScala
             .foreach(println)
 
-        Thread sleep 2
+        Thread sleep 2000
 
         print("Number of entries in master database: ")
         session.execute(
@@ -36,7 +36,7 @@ object QueryJob {
             .asScala
             .foreach(println)
 
-        Thread sleep 2
+        Thread sleep 2000
 
         print("Number of visits with an old HTTP version: ")
         session.execute(
@@ -47,7 +47,7 @@ object QueryJob {
             .asScala
             .foreach(println)
 
-        Thread sleep 2
+        Thread sleep 2000
 
         /**
          * Alternative way of accessing cassandra using the cassandra-spark-connector:
