@@ -13,6 +13,7 @@ object QueryJob {
 
     def main(args: Array[String]): Unit = {
 
+        // Setup...
         val sc = getSparkContext
         val sqlContext = getSQLContext(sc)
         val session = getOrCreateCassandraConnector(sc).openSession()
@@ -31,7 +32,7 @@ object QueryJob {
 
         print("Number of entries in master database: ")
         session.execute(
-            s"""SELECT count(*) FROM masterlogdata;""".stripMargin)
+            s"""SELECT COUNT(*) FROM masterlogdata;""".stripMargin)
             .all
             .asScala
             .foreach(println)
