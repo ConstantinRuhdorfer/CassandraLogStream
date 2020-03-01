@@ -1,6 +1,7 @@
 package query
 
 import config.Settings
+import org.apache.spark.sql.functions._
 import utils.CassandraUtils.getOrCreateCassandraConnector
 import utils.SparkUtils.{getSQLContext, getSparkContext}
 
@@ -26,6 +27,8 @@ object QueryJob {
             .asScala
             .foreach(println)
 
+        Thread sleep 2
+
         print("Number of entries in master database: ")
         session.execute(
             s"""SELECT count(*) FROM masterlogdata;""".stripMargin)
@@ -33,14 +36,38 @@ object QueryJob {
             .asScala
             .foreach(println)
 
+        Thread sleep 2
+
         print("Number of visits with an old HTTP version: ")
         session.execute(
-            s"""SELECT count(*) FROM masterlogdata
+            s"""SELECT COUNT(*) FROM masterlogdata
                |WHERE httpversion = 'HTTP/1.0'
                |ALLOW FILTERING;""".stripMargin)
             .all
             .asScala
             .foreach(println)
+
+        Thread sleep 2
+
+        /**
+         * Alternative way of accessing cassandra using the cassandra-spark-connector:
+         *
+         * SELECT pagepath, COUNT(visitorid) AS num_visitor
+         * FROM pageviews
+         * GROUP BY pagepath;
+         */
+        import sqlContext.implicits._
+        sqlContext
+            .read
+            .format("org.apache.spark.sql.cassandra")
+            .options(Map("table" -> "pageviews", "keyspace" -> "logstreamcassandra"))
+            .load
+            .groupBy("pagepath")
+            .agg(
+                count("visitorid").alias("num_visitor")
+            )
+            .sort($"num_visitor".desc)
+            .show(10)
 
         session.close()
     }
