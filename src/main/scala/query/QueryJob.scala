@@ -1,7 +1,10 @@
 package query
 
 import config.Settings
+import utils.CassandraUtils.getOrCreateCassandraConnector
 import utils.SparkUtils.{getSQLContext, getSparkContext}
+
+import scala.collection.JavaConverters._
 
 object QueryJob {
 
@@ -11,56 +14,34 @@ object QueryJob {
 
         val sc = getSparkContext
         val sqlContext = getSQLContext(sc)
+        val session = getOrCreateCassandraConnector(sc).openSession()
 
-        /**
-         * Equivalent to:
-         *
-         * use logstreamcassandra;
-         * SELECT * FROM masterlogdata
-         * WHERE loglevel == 'error' LIMIT 10;
-         *
-         */
-        sqlContext
-            .read
-            .format("org.apache.spark.sql.cassandra")
-            .options(Map("table" -> wlc.defaultMasterLogDataTableName,
-                "keyspace" -> wlc.defaultKeySpace))
-            .load
-            .filter("loglevel == 'error'")
-            .show(10)
+        session.execute("use logstreamcassandra;")
+        session.execute(
+            s"""SELECT * FROM masterlogdata
+               |WHERE loglevel = 'error'
+               |LIMIT 10
+               |ALLOW FILTERING;""".stripMargin)
+            .all
+            .asScala
+            .foreach(println)
 
-        /**
-         * Equivalent to:
-         *
-         * use logstreamcassandra;
-         * SELECT count(*) FROM masterlogdata;
-         *
-         */
         print("Number of entries in master database: ")
-        println(sqlContext
-            .read
-            .format("org.apache.spark.sql.cassandra")
-            .options(Map("table" -> wlc.defaultMasterLogDataTableName,
-                "keyspace" -> wlc.defaultKeySpace))
-            .load
-            .count)
+        session.execute(
+            s"""SELECT count(*) FROM masterlogdata;""".stripMargin)
+            .all
+            .asScala
+            .foreach(println)
 
-        /**
-         * Equivalent to:
-         *
-         * use logstreamcassandra;
-         * SELECT count(*) FROM masterlogdata
-         * WHERE httpversion == 'HTTP/1.0';
-         *
-         */
-        print("Number of visitors with an old HTTP version: ")
-        println(sqlContext
-            .read
-            .format("org.apache.spark.sql.cassandra")
-            .options(Map("table" -> wlc.defaultMasterLogDataTableName,
-                "keyspace" -> wlc.defaultKeySpace))
-            .load
-            .filter("httpversion = 'HTTP/1.0'")
-            .count)
+        print("Number of visits with an old HTTP version: ")
+        session.execute(
+            s"""SELECT count(*) FROM masterlogdata
+               |WHERE httpversion = 'HTTP/1.0'
+               |ALLOW FILTERING;""".stripMargin)
+            .all
+            .asScala
+            .foreach(println)
+
+        session.close()
     }
 }
