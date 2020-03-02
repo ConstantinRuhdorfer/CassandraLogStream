@@ -8,13 +8,14 @@ package object domain {
                             visitor: String,
                             ip: String,
                             httpmethod: HTTPMethod,
-                            page: String,
+                            pagepath: String,
                             httpversion: HTTPVersion,
                             statuscode: Int,
                             loglevel: String)
 
     case class PageView(pagename: String,
                         pagepath: String,
+                        service: String,
                         timestamp: Long,
                         visitorid: String,
                         visitorip: String)

@@ -123,6 +123,7 @@ object StreamingJob extends App {
         PageView(
             record(5).split("/").last,
             record(5),
+            record(5).split("/")(1),
             record(1).toLong,
             record(2),
             record(3))

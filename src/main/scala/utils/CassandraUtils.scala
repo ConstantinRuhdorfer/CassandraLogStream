@@ -67,7 +67,7 @@ object CassandraUtils {
                        |visitor text,
                        |ip text,
                        |httpmethod text,
-                       |page text,
+                       |pagepath text,
                        |httpversion text,
                        |statusCode int,
                        |loglevel text,
@@ -84,6 +84,7 @@ object CassandraUtils {
                        |CREATE TABLE $pageViewTableName(
                        |pagename text,
                        |pagepath text,
+                       |service text,
                        |timestamp bigint,
                        |visitorid text,
                        |visitorip text,
