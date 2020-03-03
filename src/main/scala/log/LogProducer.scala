@@ -4,7 +4,7 @@ import java.io.FileWriter
 
 import config.Settings
 import domainTypes.HTTPMethod.HTTPMethod
-import domainTypes.{HTTPMethod, HTTPStatusCode, HTTPVersion}
+import domainTypes.{HTTPMethod, HTTPStatusCode, HTTPVersion, LogLevel}
 import org.apache.commons.io.FileUtils
 
 import scala.io.Source.fromInputStream
@@ -66,14 +66,14 @@ object LogProducer extends App {
         }
 
         val logLevel = statusCode match {
-            case HTTPStatusCode.INTERNAL_SERVER_ERROR => "error"
-            case HTTPStatusCode.NOT_FOUND => "warning"
-            case HTTPStatusCode.FORBIDDEN => "warning"
-            case HTTPStatusCode.CREATED => "event"
+            case HTTPStatusCode.INTERNAL_SERVER_ERROR => LogLevel.ERROR
+            case HTTPStatusCode.NOT_FOUND => LogLevel.WARNING
+            case HTTPStatusCode.FORBIDDEN => LogLevel.WARNING
+            case HTTPStatusCode.CREATED => LogLevel.EVENT
             case _ =>
                 iteration % (rnd.nextInt(3) + 1) match {
-                    case 1 => "debug"
-                    case _ => "info"
+                    case 1 => LogLevel.DEBUG
+                    case _ => LogLevel.INFO
                 }
         }
 

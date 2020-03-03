@@ -52,4 +52,22 @@ package object domainTypes {
         def customWithName(str: String): domainTypes.HTTPStatusCode.Value = withName(map(str))
     }
 
+    object LogLevel extends Enumeration {
+        type LogLevel = Value
+        val ERROR: domainTypes.LogLevel.Value = Value("ERROR")
+        val WARNING: domainTypes.LogLevel.Value = Value("WARNING")
+        val EVENT: domainTypes.LogLevel.Value = Value("EVENT")
+        val DEBUG: domainTypes.LogLevel.Value = Value("DEBUG")
+        val INFO: domainTypes.LogLevel.Value = Value("INFO")
+
+        private val map = Map(
+            "ERROR" -> "ERROR",
+            "WARNING" -> "WARNING",
+            "EVENT" -> "EVENT",
+            "DEBUG" -> "DEBUG",
+            "INFO" -> "INFO")
+
+        def customWithName(str: String): domainTypes.LogLevel.Value = withName(map(str))
+    }
+
 }
