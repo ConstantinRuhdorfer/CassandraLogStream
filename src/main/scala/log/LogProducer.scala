@@ -4,7 +4,7 @@ import java.io.FileWriter
 
 import config.Settings
 import domainTypes.HTTPMethod.HTTPMethod
-import domainTypes.{HTTPMethod, HTTPVersion}
+import domainTypes.{HTTPMethod, HTTPStatusCode, HTTPVersion}
 import org.apache.commons.io.FileUtils
 
 import scala.io.Source.fromInputStream
@@ -58,22 +58,23 @@ object LogProducer extends App {
     private def generateNewDataPoint(iteration: Int, timestamp: Long): String = {
 
         val statusCode = iteration % (rnd.nextInt(100) + 1) match {
-            case 0 => "500"
-            case 1 => "404"
-            case 2 => "403"
-            case 3 => "201"
-            case _ => "200"
+            case 0 => HTTPStatusCode.INTERNAL_SERVER_ERROR
+            case 1 => HTTPStatusCode.NOT_FOUND
+            case 2 => HTTPStatusCode.FORBIDDEN
+            case 3 => HTTPStatusCode.CREATED
+            case _ => HTTPStatusCode.OK
         }
 
         val logLevel = statusCode match {
-            case "500" => "error"
-            case "404" => "warning"
-            case "403" => "warning"
-            case "201" => "event"
-            case _ => iteration % (rnd.nextInt(3) + 1) match {
-                case 1 => "debug"
-                case _ => "info"
-            }
+            case HTTPStatusCode.INTERNAL_SERVER_ERROR => "error"
+            case HTTPStatusCode.NOT_FOUND => "warning"
+            case HTTPStatusCode.FORBIDDEN => "warning"
+            case HTTPStatusCode.CREATED => "event"
+            case _ =>
+                iteration % (rnd.nextInt(3) + 1) match {
+                    case 1 => "debug"
+                    case _ => "info"
+                }
         }
 
         val httpVersion = iteration % (rnd.nextInt(3) + 1) match {
@@ -84,10 +85,10 @@ object LogProducer extends App {
 
         implicit val iter: Int = iteration
         val httpMethod = statusCode match {
-            case "500" => getRandomHTTPMethod
-            case "404" => getRandomHTTPMethod
-            case "403" => getRandomHTTPMethod
-            case "201" => HTTPMethod.PUT
+            case HTTPStatusCode.INTERNAL_SERVER_ERROR => getRandomHTTPMethod
+            case HTTPStatusCode.NOT_FOUND => getRandomHTTPMethod
+            case HTTPStatusCode.FORBIDDEN => getRandomHTTPMethod
+            case HTTPStatusCode.CREATED => HTTPMethod.PUT
             case _ => get200CompatibleHTTPMethod
         }
 
