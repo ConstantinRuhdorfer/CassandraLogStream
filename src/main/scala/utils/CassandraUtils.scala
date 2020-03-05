@@ -74,7 +74,7 @@ object CassandraUtils {
                 s"""
                    |CREATE MATERIALIZED VIEW
                    |IF NOT EXISTS logs_by_loglevel
-                   |AS SELECT timestamp, pageid, visitorid, loglevel
+                   |AS SELECT timestamp, pageid, visitorid, loglevel, httpmethod, httpversion, statuscode
                    |FROM $masterLogDataTableName
                    |WHERE timestamp IS NOT NULL
                    |AND pageid IS NOT NULL
@@ -87,7 +87,7 @@ object CassandraUtils {
                 s"""
                    |CREATE MATERIALIZED VIEW
                    |IF NOT EXISTS logs_by_timestamp
-                   |AS SELECT timestamp, pageid, visitorid
+                   |AS SELECT timestamp, pageid, visitorid, loglevel, httpmethod, httpversion, statuscode
                    |FROM $masterLogDataTableName
                    |WHERE timestamp IS NOT NULL
                    |AND pageid IS NOT NULL
@@ -104,7 +104,7 @@ object CassandraUtils {
                    |WHERE pageid IS NOT NULL
                    |AND timestamp IS NOT NULL
                    |AND visitorid IS NOT NULL
-                   |PRIMARY KEY ((pageid), visitorid, timestamp);
+                   |PRIMARY KEY ((pageid), timestamp, visitorid);
                    |""".stripMargin)
 
             session.execute(
@@ -116,7 +116,7 @@ object CassandraUtils {
                    |WHERE pageid IS NOT NULL
                    |AND timestamp IS NOT NULL
                    |AND visitorid IS NOT NULL
-                   |PRIMARY KEY ((visitorid), pageid, timestamp);
+                   |PRIMARY KEY ((visitorid), timestamp, pageid);
                    |""".stripMargin)
 
             session.execute(
@@ -142,7 +142,10 @@ object CassandraUtils {
                    |""".stripMargin)
         }
         catch {
-            case _: InvalidQueryException => println("Query was invalid. Please check the table configuration.")
+            case e: InvalidQueryException => println(
+                s"""
+                   |Query was invalid. Please check the table configuration.
+                   |Failed with exception : $e""".stripMargin)
         }
 
         session.close()
