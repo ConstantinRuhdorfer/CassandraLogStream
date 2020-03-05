@@ -4,8 +4,8 @@ import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
 import config.Settings
-import domain.{LogDataPoint, PageView, Visitor}
-import domainTypes.{HTTPMethod, HTTPVersion}
+import domain.{IpByVisitorId, LogByLogId, PageDetailsByPageId}
+import domainTypes.{HTTPMethod, HTTPVersion, LogLevel}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
@@ -50,25 +50,23 @@ object StreamingJob extends App {
         // Writes the logs.
         val textDStream = ssc.textFileStream(inputPath)
         textDStream
-            .transform(transformStream(_, mapToLogData))
+            .transform(transformStream(_, mapToLogByLogId))
             .foreachRDD(
                 _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultMasterLogDataTableName,
                     AllColumns, writeConf = writeConf)
             )
 
-        // Writes the page views table.
         textDStream
-            .transform(transformStream(_, mapToPageView))
+            .transform(transformStream(_, mapToPageDetailsByPageId))
             .foreachRDD(
-                _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultPageViewTableName,
+                _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultPageDetailsByPageId,
                     AllColumns, writeConf = writeConf)
             )
 
-        // Writes the visitors table.
         textDStream
-            .transform(transformStream(_, mapToVisitor))
+            .transform(transformStream(_, mapToIpByVisitorId))
             .foreachRDD(
-                _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultVisitorTableName,
+                _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultIPsByVisitorId,
                     AllColumns, writeConf = writeConf)
             )
 
@@ -95,51 +93,46 @@ object StreamingJob extends App {
     }
 
     /**
-     * Maps an Array[String] to an LogDataPoint.
+     * Maps an Array[String] to an LogByLogId.
      *
      * @param record The array.
      * @return LogDataPoint
      */
-    private def mapToLogData(record: Array[String]): LogDataPoint = {
-        LogDataPoint(
-            record(0),
+    private def mapToLogByLogId(record: Array[String]): LogByLogId = {
+        LogByLogId(
             record(1).toLong,
+            record(5),
             record(2),
             record(3),
+            LogLevel.customWithName(record(8)),
             HTTPMethod.customWithName(record(4)),
-            record(5),
             HTTPVersion.customWithName(record(6)),
-            record(7).toInt,
-            record(8))
+            record(7).toInt)
     }
 
     /**
-     * Maps an Array[String] to an PageView.
+     * Maps an Array[String] to an PageDetailsByPageId.
      *
      * @param record The array.
-     * @return PageView
+     * @return LogDataPoint
      */
-    private def mapToPageView(record: Array[String]): PageView = {
-        PageView(
-            record(5).split("/").last,
+    private def mapToPageDetailsByPageId(record: Array[String]): PageDetailsByPageId = {
+        PageDetailsByPageId(
             record(5),
-            record(5).split("/")(1),
-            record(1).toLong,
-            record(2),
-            record(3))
+            record(5).split("/").last,
+            record(5).split("/")(1))
     }
 
     /**
-     * Maps an Array[String] to an Visitor.
+     * Maps an Array[String] to an IpByVisitorId.
      *
      * @param record The array.
-     * @return Visitor
+     * @return LogDataPoint
      */
-    private def mapToVisitor(record: Array[String]): Visitor = {
-        Visitor(
+    private def mapToIpByVisitorId(record: Array[String]): IpByVisitorId = {
+        IpByVisitorId(
             record(2),
-            record(3),
             record(1).toLong,
-            record(5))
+            record(3))
     }
 }

@@ -1,27 +1,25 @@
 import domainTypes.HTTPMethod.HTTPMethod
 import domainTypes.HTTPVersion.HTTPVersion
+import domainTypes.LogLevel.LogLevel
 
 package object domain {
 
-    case class LogDataPoint(id: String,
-                            timestamp: Long,
-                            visitor: String,
-                            ip: String,
-                            httpmethod: HTTPMethod,
-                            pagepath: String,
-                            httpversion: HTTPVersion,
-                            statuscode: Int,
-                            loglevel: String)
+    case class LogByLogId(timestamp: Long,
+                          pageid: String,
+                          visitorid: String,
+                          ip: String,
+                          loglevel: LogLevel,
+                          httpmethod: HTTPMethod,
+                          httpversion: HTTPVersion,
+                          statuscode: Int)
 
-    case class PageView(pagename: String,
-                        pagepath: String,
-                        service: String,
-                        timestamp: Long,
-                        visitorid: String,
-                        visitorip: String)
 
-    case class Visitor(visitorid: String,
-                       visitorip: String,
-                       timestamp: Long,
-                       pagepath: String)
+    case class PageDetailsByPageId(pageid: String,
+                                   pagename: String,
+                                   service: String)
+
+    case class IpByVisitorId(visitorid: String,
+                             timestamp: Long,
+                             ip: String)
+
 }

@@ -20,8 +20,8 @@ object CassandraUtils {
         createCassandraSetupIfNotExists(sc,
             wlc.defaultKeySpace,
             wlc.defaultMasterLogDataTableName,
-            wlc.defaultPageViewTableName,
-            wlc.defaultVisitorTableName)
+            wlc.defaultPageDetailsByPageId,
+            wlc.defaultIPsByVisitorId)
     }
 
     /**
@@ -30,9 +30,11 @@ object CassandraUtils {
      * @param sc       The spark context.
      * @param keySpace A keyspace name. Should default to defaultKeySpace.
      */
-    def createCassandraSetupIfNotExists(sc: SparkContext, keySpace: String,
-                                        masterLogDataTableName: String, pageViewTableName: String,
-                                        visitorTableName: String): Unit = {
+    def createCassandraSetupIfNotExists(sc: SparkContext,
+                                        keySpace: String,
+                                        masterLogDataTableName: String,
+                                        pageDetailsByPageIdTableName: String,
+                                        iPsByVisitorIdTableName: String): Unit = {
 
         val session = getOrCreateCassandraConnector(sc).openSession()
 
@@ -62,48 +64,111 @@ object CassandraUtils {
                 session.execute(
                     s"""
                        |CREATE TABLE $masterLogDataTableName(
-                       |id text,
                        |timestamp bigint,
-                       |visitor text,
+                       |pageid text,
+                       |visitorid text,
                        |ip text,
-                       |httpmethod text,
-                       |pagepath text,
-                       |httpversion text,
-                       |statusCode int,
                        |loglevel text,
-                       |PRIMARY KEY(id, timestamp));
+                       |httpmethod text,
+                       |httpversion text,
+                       |statuscode int,
+                       |PRIMARY KEY((timestamp, pageid, visitorid))
+                       |);
                        |""".stripMargin)
         }
         try {
-            session.execute(s"""SELECT * FROM $pageViewTableName;""")
+            session.execute(s"""SELECT * FROM log_by_loglevel;""")
         }
         catch {
             case _: InvalidQueryException =>
                 session.execute(
                     s"""
-                       |CREATE TABLE $pageViewTableName(
+                       |CREATE MATERIALIZED VIEW log_by_loglevel
+                       |AS SELECT timestamp, pageid, visitorid, loglevel
+                       |FROM $masterLogDataTableName
+                       |WHERE timestamp IS NOT NULL
+                       |AND pageid IS NOT NULL
+                       |AND visitorid IS NOT NULL
+                       |AND loglevel IS NOT NULL
+                       |PRIMARY KEY ((loglevel), timestamp, pageid, visitorid);
+                       |""".stripMargin)
+        }
+        try {
+            session.execute(s"""SELECT * FROM log_by_timestamp;""")
+        }
+        catch {
+            case _: InvalidQueryException =>
+                session.execute(
+                    s"""
+                       |CREATE MATERIALIZED VIEW log_by_timestamp
+                       |AS SELECT timestamp, pageid, visitorid
+                       |FROM $masterLogDataTableName
+                       |WHERE timestamp IS NOT NULL
+                       |AND pageid IS NOT NULL
+                       |AND visitorid IS NOT NULL
+                       |PRIMARY KEY ((timestamp), visitorid, pageid);
+                       |""".stripMargin)
+        }
+        try {
+            session.execute(s"""SELECT * FROM visitors_by_pageid;""")
+        }
+        catch {
+            case _: InvalidQueryException =>
+                session.execute(
+                    s"""
+                       |CREATE MATERIALIZED VIEW visitors_by_pageid
+                       |AS SELECT pageid, visitorid, timestamp
+                       |FROM $masterLogDataTableName
+                       |WHERE pageid IS NOT NULL
+                       |AND timestamp IS NOT NULL
+                       |AND visitorid IS NOT NULL
+                       |PRIMARY KEY ((pageid), visitorid, timestamp);
+                       |""".stripMargin)
+        }
+        try {
+            session.execute(s"""SELECT * FROM viewed_pages_by_visitorid;""")
+        }
+        catch {
+            case _: InvalidQueryException =>
+                session.execute(
+                    s"""
+                       |CREATE MATERIALIZED VIEW viewed_pages_by_visitorid
+                       |AS SELECT pageid, visitorid, timestamp
+                       |FROM $masterLogDataTableName
+                       |WHERE pageid IS NOT NULL
+                       |AND timestamp IS NOT NULL
+                       |AND visitorid IS NOT NULL
+                       |PRIMARY KEY ((visitorid), pageid, timestamp);
+                       |""".stripMargin)
+        }
+        try {
+            session.execute(s"""SELECT * FROM $pageDetailsByPageIdTableName;""")
+        }
+        catch {
+            case _: InvalidQueryException =>
+                session.execute(
+                    s"""
+                       |CREATE TABLE $pageDetailsByPageIdTableName(
+                       |pageid text,
                        |pagename text,
-                       |pagepath text,
                        |service text,
-                       |timestamp bigint,
-                       |visitorid text,
-                       |visitorip text,
-                       |PRIMARY KEY(pagepath, timestamp, visitorid));
+                       |PRIMARY KEY((pageid))
+                       |);
                        |""".stripMargin)
         }
         try {
-            session.execute(s"""SELECT * FROM $visitorTableName;""")
+            session.execute(s"""SELECT * FROM $iPsByVisitorIdTableName;""")
         }
         catch {
             case _: InvalidQueryException =>
                 session.execute(
                     s"""
-                       |CREATE TABLE $visitorTableName(
+                       |CREATE TABLE $iPsByVisitorIdTableName(
                        |visitorid text,
-                       |visitorip text,
+                       |ip text,
                        |timestamp bigint,
-                       |pagepath text,
-                       |PRIMARY KEY(visitorid, timestamp, pagepath));
+                       |PRIMARY KEY((visitorid), timestamp, ip)
+                       |);
                        |""".stripMargin)
         }
 

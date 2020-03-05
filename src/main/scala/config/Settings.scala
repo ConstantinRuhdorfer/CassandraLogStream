@@ -17,8 +17,8 @@ object Settings {
         lazy val sparkAppName: String = weblogGen.getString("spark_app_name")
         lazy val defaultKeySpace: String = weblogGen.getString("default_key_space")
         lazy val defaultMasterLogDataTableName: String = weblogGen.getString("default_master_log_data_table_name")
-        lazy val defaultPageViewTableName: String = weblogGen.getString("default_page_view_table_name")
-        lazy val defaultVisitorTableName: String = weblogGen.getString("default_visitor_table_name")
+        lazy val defaultPageDetailsByPageId: String = weblogGen.getString("default_page_details_by_pageid")
+        lazy val defaultIPsByVisitorId: String = weblogGen.getString("default_ips_by_visitorid")
     }
 
 }
