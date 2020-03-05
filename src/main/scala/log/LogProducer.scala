@@ -97,7 +97,7 @@ object LogProducer extends App {
         val pagePath = LogPages(rnd.nextInt(1000 - 1))
         val ip = LogIPAddresses(rnd.nextInt(500 - 1))
 
-        s"$id;$timestamp;$visitor;$ip;$httpMethod;$pagePath;$httpVersion;$statusCode;$logLevel\n"
+        s"$timestamp;$visitor;$ip;$httpMethod;$pagePath;$httpVersion;$statusCode;$logLevel\n"
     }
 
     /**

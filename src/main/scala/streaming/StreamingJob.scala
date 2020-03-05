@@ -85,7 +85,7 @@ object StreamingJob extends App {
                                              mapToDomain: Array[String] => T): RDD[T] = {
         input.flatMap { line =>
             val record = line.split(";")
-            if (record.length == 9)
+            if (record.length == 8)
                 Some(mapToDomain(record))
             else
                 None
@@ -100,14 +100,14 @@ object StreamingJob extends App {
      */
     private def mapToLogByLogId(record: Array[String]): LogByLogId = {
         LogByLogId(
-            record(1).toLong,
-            record(5),
+            record(0).toLong,
+            record(4),
+            record(1),
             record(2),
-            record(3),
-            LogLevel.customWithName(record(8)),
-            HTTPMethod.customWithName(record(4)),
-            HTTPVersion.customWithName(record(6)),
-            record(7).toInt)
+            LogLevel.customWithName(record(7)),
+            HTTPMethod.customWithName(record(3)),
+            HTTPVersion.customWithName(record(5)),
+            record(6).toInt)
     }
 
     /**
@@ -118,9 +118,9 @@ object StreamingJob extends App {
      */
     private def mapToPageDetailsByPageId(record: Array[String]): PageDetailsByPageId = {
         PageDetailsByPageId(
-            record(5),
-            record(5).split("/").last,
-            record(5).split("/")(1))
+            record(4),
+            record(4).split("/").last,
+            record(4).split("/")(1))
     }
 
     /**
@@ -131,8 +131,8 @@ object StreamingJob extends App {
      */
     private def mapToIpByVisitorId(record: Array[String]): IpByVisitorId = {
         IpByVisitorId(
-            record(2),
-            record(1).toLong,
-            record(3))
+            record(1),
+            record(0).toLong,
+            record(2))
     }
 }
