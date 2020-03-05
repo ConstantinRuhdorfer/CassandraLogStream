@@ -77,13 +77,13 @@ object CassandraUtils {
                        |""".stripMargin)
         }
         try {
-            session.execute(s"""SELECT * FROM log_by_loglevel;""")
+            session.execute(s"""SELECT * FROM logs_by_loglevel;""")
         }
         catch {
             case _: InvalidQueryException =>
                 session.execute(
                     s"""
-                       |CREATE MATERIALIZED VIEW log_by_loglevel
+                       |CREATE MATERIALIZED VIEW logs_by_loglevel
                        |AS SELECT timestamp, pageid, visitorid, loglevel
                        |FROM $masterLogDataTableName
                        |WHERE timestamp IS NOT NULL
@@ -94,13 +94,13 @@ object CassandraUtils {
                        |""".stripMargin)
         }
         try {
-            session.execute(s"""SELECT * FROM log_by_timestamp;""")
+            session.execute(s"""SELECT * FROM logs_by_timestamp;""")
         }
         catch {
             case _: InvalidQueryException =>
                 session.execute(
                     s"""
-                       |CREATE MATERIALIZED VIEW log_by_timestamp
+                       |CREATE MATERIALIZED VIEW logs_by_timestamp
                        |AS SELECT timestamp, pageid, visitorid
                        |FROM $masterLogDataTableName
                        |WHERE timestamp IS NOT NULL

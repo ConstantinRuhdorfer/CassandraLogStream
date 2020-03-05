@@ -1,11 +1,8 @@
 package query
 
 import config.Settings
-import org.apache.spark.sql.functions._
 import utils.CassandraUtils.getOrCreateCassandraConnector
 import utils.SparkUtils.{getSQLContext, getSparkContext}
-
-import scala.collection.JavaConverters._
 
 object QueryJob {
 
@@ -19,7 +16,7 @@ object QueryJob {
         val session = getOrCreateCassandraConnector(sc).openSession()
 
         session.execute("use logstreamcassandra;")
-        session.execute(
+        /*session.execute(
             s"""SELECT * FROM masterlogdata
                |WHERE loglevel = 'error'
                |LIMIT 10
@@ -70,6 +67,6 @@ object QueryJob {
             .sort($"num_visitor".desc)
             .show(10)
 
-        session.close()
+        session.close()*/
     }
 }
