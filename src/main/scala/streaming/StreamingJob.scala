@@ -3,12 +3,15 @@ package streaming
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
+import com.twitter.algebird.{HLL, HyperLogLogMonoid}
 import config.Settings
 import domain.{IpByVisitorId, LogByLogId, PageDetailsByPageId}
 import domainTypes.{HTTPMethod, HTTPVersion, LogLevel}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
+import query.QueryJob.trigger
 import utils.CassandraUtils._
 import utils.SparkUtils._
 
@@ -16,6 +19,8 @@ import scala.language.postfixOps
 import scala.reflect.ClassTag
 
 object StreamingJob extends App {
+
+    private val HYPER_LOG_LOG_MONOID = new HyperLogLogMonoid(18)
 
     val wlc: Settings.WebLogGen.type = Settings.WebLogGen
 
@@ -48,13 +53,16 @@ object StreamingJob extends App {
         implicit val c: CassandraConnector = getOrCreateCassandraConnector(sc)
 
         // Writes the logs.
-        val textDStream = ssc.textFileStream(inputPath)
-        textDStream
-            .transform(transformStream(_, mapToLogByLogId))
-            .foreachRDD(
-                _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultMasterLogDataTableName,
-                    AllColumns, writeConf = writeConf)
-            )
+        val textDStream: DStream[String] = ssc.textFileStream(inputPath)
+
+        val logByLogId: DStream[LogByLogId] = textDStream.transform(transformStream(_, mapToLogByLogId))
+
+        logByLogId.foreachRDD(
+            _.saveToCassandra(wlc.defaultKeySpace, wlc.defaultMasterLogDataTableName,
+                AllColumns, writeConf = writeConf)
+        )
+
+        distinctIps(logByLogId)
 
         textDStream
             .transform(transformStream(_, mapToPageDetailsByPageId))
@@ -134,5 +142,38 @@ object StreamingJob extends App {
             record(1),
             record(0).toLong,
             record(2))
+    }
+
+
+    /**
+     * Uses hyper log log to find distinct ip addresses in the stream.
+     *
+     * @param logStream The log stream.
+     */
+    private def distinctIps(logStream: DStream[LogByLogId]): Unit = {
+        val approxIps = logStream.mapPartitions(
+            (logs: Iterator[LogByLogId]) => {
+
+                val hll = new HyperLogLogMonoid(18)
+                logs.map((log: LogByLogId) => hll(log.ip.getBytes))
+            }).reduce(_ + _)
+
+        approximateIPCountHLL(approxIps)
+    }
+
+    /**
+     * Counts the ip addresses using hyper log log.
+     *
+     * @param approxIps A stream of hyper log log byte masks.
+     */
+    private def approximateIPCountHLL(approxIps: DStream[HLL]): Unit = {
+        var h = HYPER_LOG_LOG_MONOID.zero
+        approxIps.foreachRDD(rdd => {
+            if (rdd.count() != 0) {
+                val partial = rdd.first()
+                h += partial
+                trigger(HYPER_LOG_LOG_MONOID.estimateSize(h).toInt)
+            }
+        })
     }
 }

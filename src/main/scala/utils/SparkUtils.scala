@@ -46,8 +46,8 @@ object SparkUtils {
         // setup spark context
         val sc = SparkContext.getOrCreate(conf)
 
-        Logger.getLogger("org").setLevel(Level.WARN)
-        Logger.getLogger("akka").setLevel(Level.WARN)
+        Logger.getLogger("org").setLevel(Level.ERROR)
+        Logger.getLogger("akka").setLevel(Level.ERROR)
 
         sc.setLogLevel("WARN")
         sc.setCheckpointDir(checkpointDirectory)
