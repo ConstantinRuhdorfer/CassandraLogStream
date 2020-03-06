@@ -153,9 +153,7 @@ object StreamingJob extends App {
     private def distinctIps(logStream: DStream[LogByLogId]): Unit = {
         val approxIps = logStream.mapPartitions(
             (logs: Iterator[LogByLogId]) => {
-
-                val hll = new HyperLogLogMonoid(18)
-                logs.map((log: LogByLogId) => hll(log.ip.getBytes))
+                logs.map((log: LogByLogId) => HYPER_LOG_LOG_MONOID(log.ip.getBytes))
             }).reduce(_ + _)
 
         approximateIPCountHLL(approxIps)
