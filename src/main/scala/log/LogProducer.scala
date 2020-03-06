@@ -92,7 +92,6 @@ object LogProducer extends App {
             case _ => get200CompatibleHTTPMethod
         }
 
-        val id = java.util.UUID.randomUUID().toString
         val visitor = Visitors(rnd.nextInt(Visitors.length - 1))
         val pagePath = LogPages(rnd.nextInt(1000 - 1))
         val ip = LogIPAddresses(rnd.nextInt(500 - 1))
