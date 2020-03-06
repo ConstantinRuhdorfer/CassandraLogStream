@@ -14,8 +14,7 @@ object LogProducer extends App {
 
     val wlc = Settings.WebLogGen
 
-    val LogIPAddresses = getLinesInFile("/LogIPAddresses.csv")
-    val LogPages = getLinesInFile("/LogPages.csv")
+    val LogPages = getLinesInFile()
     val Visitors = (0 to wlc.visitors).map("Visitor-" + _)
 
     val rnd = new Random()
@@ -94,21 +93,22 @@ object LogProducer extends App {
 
         val visitor = Visitors(rnd.nextInt(Visitors.length - 1))
         val pagePath = LogPages(rnd.nextInt(1000 - 1))
-        val ip = LogIPAddresses(rnd.nextInt(500 - 1))
+        val visitorId = visitor.split("-")(1).toInt
+        val ip = generateIpFromVisitorId(visitorId)
 
         s"$timestamp;$visitor;$ip;$httpMethod;$pagePath;$httpVersion;$statusCode;$logLevel\n"
     }
 
     /**
-     * Given a path to a csv file returns its content as a array string.
+     * Returns a random ip address for a user that is slightly correlated with its id.
      *
-     * @param filePath The path.
-     * @return The array.
+     * @param userId The user id for correlation.
+     * @return An ip address.
      */
-    private def getLinesInFile(filePath: String): Array[String] = {
-        fromInputStream(getClass.getResourceAsStream(filePath))
-            .getLines()
-            .toArray
+    private def generateIpFromVisitorId(userId: Int): String = {
+        val start = if (userId > 5 && userId < 250) userId - 5 else rnd.nextInt(125) + 1
+        val end = if (userId > 5 && userId < 250) userId + 5 else 125 + rnd.nextInt(125 + 1)
+        s"""${rnd.nextInt(255) + 1}.${start + rnd.nextInt((end - start) + 1)}.${start + rnd.nextInt((end - start) + 1)}.${start + rnd.nextInt((end - start) + 1)}""".stripMargin
     }
 
     /**
@@ -140,5 +140,17 @@ object LogProducer extends App {
             case 5 => HTTPMethod.PUT
             case _ => HTTPMethod.GET
         }
+    }
+
+    /**
+     * Given a path to a csv file returns its content as a array string.
+     *
+     * @param filePath The path.
+     * @return The array.
+     */
+    private def getLinesInFile(filePath: String = "/LogPages.csv"): Array[String] = {
+        fromInputStream(getClass.getResourceAsStream(filePath))
+            .getLines()
+            .toArray
     }
 }
