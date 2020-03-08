@@ -3,6 +3,8 @@ target/*
 src/main/resources/data.csv
 src/main/resources/input
 
+.DS_Store
+
 # Created by https://www.gitignore.io/api/scala,intellij
 # Edit at https://www.gitignore.io/?templates=scala,intellij
 
