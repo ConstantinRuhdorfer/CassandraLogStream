@@ -118,7 +118,7 @@ object QueryJob {
             .asScala
 
         println("")
-        println(s"""Get all logs by log level; limit 10:""")
+        println(s"""Get 10 logs:""")
         q1.foreach {
             println
         }
@@ -136,25 +136,25 @@ object QueryJob {
         }
 
         println("")
-        println(s"""Find all ips visitor $someVisitorWhoCausedAnError used:""")
+        println(s"""Find all IPs for $someVisitorWhoCausedAnError used:""")
         q4.foreach {
             println
         }
 
         println("")
-        println(s"""View the pages visitor $someVisitorWhoCausedAnError viewed:""")
+        println(s"""View the pages $someVisitorWhoCausedAnError viewed:""")
         q5.foreach {
             println
         }
 
         println("")
-        println(s"""$someVisitorWhoCausedAnError visited page $viewedPageBySomeVisitorWhoCausedAnError:""")
+        println(s"""$someVisitorWhoCausedAnError visited the page $viewedPageBySomeVisitorWhoCausedAnError:""")
         q6.foreach {
             println
         }
 
         println("")
-        println(s"""Visitors who also viewed that page $viewedPageBySomeVisitorWhoCausedAnError were:""")
+        println(s"""Visitors who also viewed the page $viewedPageBySomeVisitorWhoCausedAnError were:""")
         q7.foreach {
             println
         }
