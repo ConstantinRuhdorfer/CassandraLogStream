@@ -63,7 +63,7 @@ object QueryJob {
                 s"""
                    |SELECT * FROM logs_by_timestamp
                    |WHERE timestamp = $timestamp
-                   |LIMIT 20;
+                   |LIMIT 10;
                    |""".stripMargin)
             .all
             .asScala
@@ -73,7 +73,7 @@ object QueryJob {
                 s"""
                    |SELECT * FROM logs_by_loglevel
                    |WHERE loglevel = '${LogLevel.ERROR}'
-                   |LIMIT 20;
+                   |LIMIT 10;
                    |""".stripMargin)
             .all
             .asScala
@@ -98,12 +98,12 @@ object QueryJob {
             .all
             .asScala
 
-        val viewdPageBySomeVisitorWhoCausedAnError = q5.head.getString(2)
+        val viewedPageBySomeVisitorWhoCausedAnError = q5.head.getString(2)
         val q6: mutable.Seq[Row] = session
             .execute(
                 s"""
                    |SELECT * FROM page_details_by_pageid
-                   |WHERE pageid = '$viewdPageBySomeVisitorWhoCausedAnError';
+                   |WHERE pageid = '$viewedPageBySomeVisitorWhoCausedAnError';
                    |""".stripMargin)
             .all
             .asScala
@@ -112,19 +112,52 @@ object QueryJob {
             .execute(
                 s"""
                    |SELECT visitorid FROM visitors_by_pageid
-                   |WHERE pageid = '$viewdPageBySomeVisitorWhoCausedAnError';
+                   |WHERE pageid = '$viewedPageBySomeVisitorWhoCausedAnError';
                    |""".stripMargin)
             .all
             .asScala
 
-        // TODO: Correct
-        println(q1)
-        println(q2)
-        println(q3)
-        println(q4)
-        println(q5)
-        println(q6)
-        println(q7)
+        println("")
+        println(s"""Get all logs by log level; limit 10:""")
+        q1.foreach {
+            println
+        }
+
+        println("")
+        println(s"""Find all logs by timestamp $timestamp:""")
+        q2.foreach {
+            println
+        }
+
+        println("")
+        println(s"""Find all logs by the log level ${LogLevel.ERROR}:""")
+        q3.foreach {
+            println
+        }
+
+        println("")
+        println(s"""Find all ips visitor $someVisitorWhoCausedAnError used:""")
+        q4.foreach {
+            println
+        }
+
+        println("")
+        println(s"""View the pages visitor $someVisitorWhoCausedAnError viewed:""")
+        q5.foreach {
+            println
+        }
+
+        println("")
+        println(s"""$someVisitorWhoCausedAnError visited page $viewedPageBySomeVisitorWhoCausedAnError:""")
+        q6.foreach {
+            println
+        }
+
+        println("")
+        println(s"""Visitors who also viewed that page $viewedPageBySomeVisitorWhoCausedAnError were:""")
+        q7.foreach {
+            println
+        }
 
         session.close()
     }
