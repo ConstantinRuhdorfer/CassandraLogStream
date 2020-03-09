@@ -19,7 +19,7 @@ Please important all requirements via its pom.xml.
 You will also need to have Cassandra running locally.
 For that install Cassandra 3.11 via its binaries/a package manager (e.g. `brew install cassandra` on mac).
 Start Cassandra with `cassandra -f`. 
-You can check for a working cassandra instance by connecting to cassandra using `clqsh`.
+You can check for a working cassandra instance by connecting to cassandra using `cqlsh`.
 
 ## How run this project
 
