@@ -48,7 +48,7 @@ The most important source code files are listed in the following tables:
 
 The projects architecture/application overview is presented below:
 
-![Project architecture](reamde_assets/LogStreamCassandraOverview.png)
+![Project architecture](readme_assets/LogStreamCassandraOverview.png)
 
 ## Cassandra
 
@@ -61,11 +61,11 @@ This project is going to setup all necessary tables itself.
 The application creates its tables automatically.
 The tables created are created for the use case presented below:
 
-![Cassandra Query](reamde_assets/ApplicationFlow.png)
+![Cassandra Query](readme_assets/ApplicationFlow.png)
 
 This results in the following table schema:
 
-![Query tables](reamde_assets/QueryTables.png)
+![Query tables](readme_assets/QueryTables.png)
 
 ## Spark
 
