@@ -1,25 +1,25 @@
 # Welcome
 
-This project aims to introduce the use of cassandra an display a cassandra use case.
+This project aims to introduce the use of Cassandra and display a Cassandra use case.
 
 ## How set this project up
 
 This project assumes Scala 2.11.X and Cassandra 3.11.
-We currently do not support other versions even tough they might work.
+We currently do not support other versions even though they might work.
 
 ### I have no experience with all of this
 
 We recommend to install the newest version of Scala 2.11.X.
 After that install IntelliJ IDEA - CE with the Scala plugin.
-Lastly use IntelliJ to import this project via its github URL.
+Lastly use IntelliJ to import this project via its Github URL.
 
-This project is a maven project.
-Please important all requirements via its pom.xml.
+This project is a Maven project.
+Please import all requirements via its pom.xml.
 
 You will also need to have Cassandra running locally.
-For that install Cassandra 3.11 via its binaries/a package manager (e.g. `brew install cassandra` on mac).
+For that install Cassandra 3.11 via its binaries or via a package manager (e.g. `brew install cassandra` on Mac).
 Start Cassandra with `cassandra -f`. 
-You can check for a working cassandra instance by connecting to cassandra using `cqlsh`.
+You can check for a working Cassandra instance by connecting to Cassandra using `cqlsh`.
 
 ## How run this project
 
